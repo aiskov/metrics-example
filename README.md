@@ -1,9 +1,14 @@
 # Example of Using Prometheus for Monitoring
 
 ## TODO:
-1. Connect application and MySQL
-2. Add MySQL monitoring
-3. Add custom metrics
+
+1. Node exporter
+2. Guage of DB objects with low costs
+3. Quantile of timers
+4. MySQL datasource example in Grafana
+5. Add references
+6. Add explanation(or reference to it) of scrapping periods, windows
+7. Add presentation
 
 ## Goal
 
