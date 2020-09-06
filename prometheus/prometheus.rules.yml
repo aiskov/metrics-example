@@ -1,0 +1,53 @@
+groups:
+    - name: app_url
+      rules:
+          - alert: UrlPing
+            expr: probe_success == 0
+            annotations:
+                  summary: URL is not accessible
+
+          - alert: BlackboxPing
+            expr: sum(up{job="Application URL"}) by (job) < 1
+            for: 30s
+            annotations:
+                  summary: Blackbox/URL exporter not available
+
+    - name: db
+      rules:
+          - alert: DbPing
+            expr: mysql_up == 0
+            annotations:
+                  summary: DB not available
+
+          - alert: ComponentPing
+            expr: sum(up{job="Database Metrics"}) by (job) < 1
+            for: 30s
+            annotations:
+                  summary: DB exporter not available
+
+    - name: app_sys
+      rules:
+          - alert: AppMemoryUsage
+            expr: sum(jvm_memory_usage_bytes{job="Application Metrics"}) > 200000000
+            for: 15m
+            annotations:
+                summary: Too much memory used
+
+          - alert: AppCpuUsage
+            expr: process_cpu_usage{job="Application Metrics"} > 0.8
+            for: 15m
+            annotations:
+                summary: Too high CPU usage
+
+          - alert: AppPing
+            expr: sum(up{job="Application Metrics"}) by (job) < 2
+            for: 30s
+            annotations:
+                summary: Component not available
+
+    - name: app_incident
+      rules:
+          - alert: code500
+            expr: increase(http_server_requests_seconds_count{status=~'5[0-9]{2}'}[1m]) > 0
+            annotations:
+                  summary: API returns code 500

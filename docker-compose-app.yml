@@ -1,0 +1,71 @@
+version: '3.7'
+
+services:
+    # Service imitation
+    instance1:
+        build: .
+        environment:
+            RUN_OPTS: >-
+                --application.instance=instance1
+        ports:
+            - 8081:8080
+
+    instance2:
+        build: .
+        environment:
+            RUN_OPTS: >-
+                --application.instance=instance2
+        ports:
+            - 8082:8080
+
+    # Load balancer
+    load-balancer:
+        image: nginx:alpine
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        ports:
+            - 8888:80
+
+    # Monitoring
+    prometheus:
+        image: prom/prometheus
+        volumes:
+            # Configs
+            - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./prometheus/prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml
+            # Data
+            # - ./data/promethues:/promethues
+        ports:
+            - 9090:9090
+
+    blackbox-exporter:
+        image: prom/blackbox-exporter
+        ports:
+            - 9115:9115
+
+    mysql-exporter:
+        image: prom/mysqld-exporter
+        environment:
+            DATA_SOURCE_NAME: "root:toor@(db:3306)/"
+        ports:
+            - 9104:9104
+
+    alertmanager:
+        image: prom/alertmanager
+        volumes:
+            - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
+    grafana:
+        image: grafana/grafana
+        environment:
+            GF_SECURITY_ADMIN_PASSWORD: nimda
+        volumes:
+            - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datsource.yml
+            # - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+        ports:
+            - 3000:3000
+
+networks:
+    default:
+        external:
+            name: metrics-demo

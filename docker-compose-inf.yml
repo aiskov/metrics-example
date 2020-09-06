@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+    # Database
+    db:
+        image: mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: toor
+            MYSQL_DATABASE: service_db
+        volumes:
+            # Init SQL
+            - ./data/mysql-init-sql:/docker-entrypoint-initdb.d
+            # Data
+            - ./data/mysql:/var/lib/mysql
+        ports:
+            - 3306:3306
+
+networks:
+    default:
+        external:
+            name: metrics-demo

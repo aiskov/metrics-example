@@ -1,0 +1,35 @@
+application:
+    instance: none
+
+management:
+    endpoints:
+        enabled-by-default: false
+        web:
+            exposure:
+                include: info, health, prometheus
+    endpoint:
+        info:
+            enabled: true
+        health:
+            enabled: true
+        prometheus:
+            enabled: true
+
+spring:
+    jpa:
+        hibernate:
+            ddl-auto: validate
+        properties:
+            'hibernate.dialect': org.hibernate.dialect.MySQLDialect
+        show-sql: true
+    datasource:
+        platform: mysql
+        driver-class-name: com.mysql.jdbc.Driver
+
+        url: jdbc:mysql://db:3306/service_db
+
+        username: root
+        password: toor
+
+info:
+    'app.instance': ${application.instance}

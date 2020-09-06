@@ -1,0 +1,27 @@
+global:
+    slack_api_url: https:hoooks.slack.com/services/.../.../...
+
+route:
+    receiver: team_slack
+    group_by:
+        - app_sys
+    repeat_interval: 30m
+
+receivers:
+    - name: team_slack
+      slack_configs:
+          - channel: monitoring
+            send_resolved: true
+            title: "
+              {{if eq .Status \"firing\"}}
+                Warning: :bomb: Something wrong with service.
+              {{else}}
+                Solved: :checkered_flag: Alerts was closed
+              {{end}}"
+            text: "
+              {{range .Alerts}}
+                \n
+                {{if eq .Status \"firing\"}}{{.Labels.job}}-{{.Labels.instance}}: {{.Annotations.summary}}
+                {{else}}{{.Labels.job}}-{{.Labels.instance}}: ~{{.Annotations.summary}}~{{end}}
+              {{end}}"
+            title_link: http://localhost:9090/alerts
