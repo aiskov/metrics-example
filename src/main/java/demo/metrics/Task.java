@@ -1,4 +1,4 @@
-package demo.metrics.api;
+package demo.metrics;
 
 import lombok.Data;
 

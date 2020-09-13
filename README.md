@@ -4,11 +4,8 @@
 
 1. Node exporter
 2. Guage of DB objects with low costs
-3. Quantile of timers
-4. MySQL datasource example in Grafana
-5. Add references
-6. Add explanation(or reference to it) of scrapping periods, windows
-7. Add presentation
+3. MySQL datasource example in Grafana
+4. Add explanation(or reference to it) of scrapping periods, windows
 
 ## Goal
 
@@ -46,7 +43,6 @@ Requirements (based on configuration, not required for monitoring it self):
 * Docker
 * Docker Compose
 
-
 ```bash
 # Build JAR artifact to run in container
 gradle clean bootJar 
@@ -66,6 +62,8 @@ docker-compose -f './docker-compose-app.yml' -p demo-app up -d --force-recreate 
 
 **NB:** Start of demo application and infrastructure separated into different compose files because application
 requires to have access to the mysql at start of the instances.
+
+**NB:** Alert manager doesn't start as it have no configuration.
 
 Dont forget to clean up your environment at the end 
 

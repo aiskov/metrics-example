@@ -1,4 +1,4 @@
-package demo.metrics.api;
+package demo.metrics;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

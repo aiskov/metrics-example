@@ -1,4 +1,4 @@
-package demo.metrics.api;
+package demo.metrics;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -23,9 +23,11 @@ public class TaskQueryController {
 
     public TaskQueryController(MeterRegistry registry, TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
-        this.queryCounter = registry.counter("app.query.count");
-    }
 
+        this.queryCounter = Counter.builder("app.query.count")
+                .baseUnit("count")
+                .register(registry);
+    }
 
     @GetMapping
     TaskListResponse taskList() {
@@ -52,7 +54,6 @@ public class TaskQueryController {
             return unmodifiableList(tasks);
         }
     }
-
 
     @Value @Builder
     public static class TaskListResponseItem {

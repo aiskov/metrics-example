@@ -1,15 +1,11 @@
-package demo.metrics.api;
+package demo.metrics;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,10 +23,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class TaskCommandController {
     private final TaskRepository taskRepository;
 
-    private final Counter addCommandsCounter;
-    private final Counter updateCommandsCounter;
-    private final Counter deleteCommandsCounter;
-
     private final Timer addCommandsTimer;
     private final Timer updateCommandsTimer;
     private final Timer deleteCommandsTimer;
@@ -40,23 +32,35 @@ public class TaskCommandController {
     public TaskCommandController(MeterRegistry registry, TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
 
-        // Counter needed?
-        this.addCommandsCounter = registry.counter("app.command.counter", Tags.of(Tag.of("command", "add")));
-        this.updateCommandsCounter = registry.counter("app.command.counter", Tags.of(Tag.of("command", "update")));
-        this.deleteCommandsCounter = registry.counter("app.command.counter", Tags.of(Tag.of("command", "delete")));
+        this.addCommandsTimer = Timer.builder("app.command.timer")
+                .tag("command", "add")
+                .publishPercentiles(0.05, 0.5, 0.75, 0.95)
+                .register(registry);
 
-        this.addCommandsTimer = registry.timer("app.command.timer", Tags.of(Tag.of("command", "add")));
-        this.updateCommandsTimer = registry.timer("app.command.timer", Tags.of(Tag.of("command", "update")));
-        this.deleteCommandsTimer = registry.timer("app.command.timer", Tags.of(Tag.of("command", "delete")));
+        this.updateCommandsTimer = Timer.builder("app.command.timer")
+                .tag("command", "update")
+                .publishPercentiles(0.05, 0.5, 0.75, 0.95)
+                .register(registry);
+
+        this.deleteCommandsTimer = Timer.builder("app.command.timer")
+                .tag("command", "delete")
+                .publishPercentiles(0.05, 0.5, 0.75, 0.95)
+                .register(registry);
 
         // Does Gauge is good idea?
-        this.tasksGauge = registry.gauge("app.tasks.count", new AtomicLong(taskRepository.count()));
-        registry.gauge("app.tasks.db-count", taskRepository, CrudRepository::count);
+        this.tasksGauge = new AtomicLong(taskRepository.count());
+
+        Gauge.builder("app.tasks.count", this.tasksGauge::get)
+                .baseUnit("count")
+                .register(registry);
+
+        Gauge.builder("app.tasks.db-count", taskRepository::count)
+                .baseUnit("count")
+                .register(registry);
     }
 
     @PostMapping("add")
     SuccessResponse add(@RequestBody AddTaskCommand command) {
-        this.addCommandsCounter.increment();
         long startProcessing = currentTimeMillis();
 
         Task task = new Task();
@@ -73,7 +77,6 @@ public class TaskCommandController {
 
     @PostMapping("update")
     SuccessResponse update(@RequestBody UpdateTaskCommand command) {
-        this.updateCommandsCounter.increment();
         long startProcessing = currentTimeMillis();
 
         Task task = this.taskRepository.getOne(command.getId());
@@ -89,7 +92,6 @@ public class TaskCommandController {
 
     @PostMapping("delete")
     SuccessResponse delete(@RequestBody DeleteTaskCommand command) {
-        this.deleteCommandsCounter.increment();
         long startProcessing = currentTimeMillis();
 
         this.taskRepository.deleteById(command.getId());

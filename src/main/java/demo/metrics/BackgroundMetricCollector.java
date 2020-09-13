@@ -1,4 +1,4 @@
-package demo.metrics.api;
+package demo.metrics;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
